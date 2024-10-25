@@ -1,38 +1,16 @@
 import './DataTable.css'
-import React, { useState, useEffect } from "react"
+import React from "react"
 import { DataTable as PrimeDataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext'
 import { Message } from 'primereact/message'
-import { csvReader } from './utils/csvReader';
 
-const DataTable = () => {
-    const [headers, setHeaders] = useState([])
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState(null)
-
-    useEffect(() => {
-        (async () => {
-            setLoading(true)
-            setError(null)
-            try {
-                const { headers, data } = await csvReader('/database/supermarket_sales.csv')
-                setData(data)
-                setHeaders(headers)
-            } catch (e) {
-                console.error(e)
-                setError('Failed to fetch the data')
-            }
-            setLoading(false)
-        })()
-    }, [])
-
-
+const DataTable = ({ loading, headers, data, setData, error }) => {
+    
     const cellEditor = ({ value, editorCallback }) => (
         <InputText type="text" value={value} onChange={(e) => editorCallback(e.target.value)} onKeyDown={(e) => e.stopPropagation()} />
     );
-    
+
     const onCellEditComplete = (e) => {
         let { rowData, newValue, field, originalEvent: event } = e;
 
@@ -48,6 +26,7 @@ const DataTable = () => {
                 value={data}
                 emptyMessage="No Content."
                 columnResizeMode="expand"
+                reorderableColumns
                 reorderableRows
                 onRowReorder={(e) => setData(e.value)} 
                 resizableColumns
