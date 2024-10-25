@@ -1,10 +1,10 @@
 import './DataTable.css'
 import React, { useState, useEffect } from "react"
-import Papa from 'papaparse';
 import { DataTable as PrimeDataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { InputText } from 'primereact/inputtext'
 import { Message } from 'primereact/message'
+import { csvReader } from './utils/csvReader';
 
 const DataTable = () => {
     const [headers, setHeaders] = useState([])
@@ -17,17 +17,9 @@ const DataTable = () => {
             setLoading(true)
             setError(null)
             try {
-                const res = await fetch('/database/supermarket_sales.csv')
-                if ( !res.ok ) throw new Error('Something Went Wrong')
-                const csv = await res.text()
-                Papa.parse(csv, {
-                    header: true,
-                    complete: ({data, meta}) => {
-                        setData(data)
-                        setHeaders(meta.fields)
-                    },
-                    error: console.error
-                });
+                const { headers, data } = await csvReader('/database/supermarket_sales.csv')
+                setData(data)
+                setHeaders(headers)
             } catch (e) {
                 console.error(e)
                 setError('Failed to fetch the data')
@@ -59,7 +51,8 @@ const DataTable = () => {
                 reorderableRows
                 onRowReorder={(e) => setData(e.value)} 
                 resizableColumns
-                
+                scrollable
+                scrollHeight="650px"
                 stripedRows
                 removableSort
                 editMode="cell"
@@ -68,9 +61,11 @@ const DataTable = () => {
                 rowsPerPageOptions={[10, 20, 30, 50]}
                 tableStyle={{ width: '50rem', minHeight: '600px' }}
             >
-                <Column rowReorder style={{ width: '3rem' }} />
-                {headers.map(col => (
+                <Column frozen rowReorder style={{ width: '3rem' }} />
+                {headers.map((col, index) => (
                     <Column
+                        frozen={!index}
+                        style={!index && { boxShadow:'2px 0 7px 0.5px #00000025' }}
                         sortable
                         key={col}
                         field={col}
